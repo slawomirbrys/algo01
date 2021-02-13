@@ -17,11 +17,11 @@ function canSum(sum, array, memo = {}) {
   let result = false;
   for(let i=0; i<array.length; i++) {
     result = canSum(sum - array[i], array, memo);
-    memo[sum] = result;
     if(result === true)
       return true;
   }
 
+  memo[sum] = result;
   return false;
 }
 
