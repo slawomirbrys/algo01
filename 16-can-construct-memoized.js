@@ -1,5 +1,4 @@
 
-import { triggerAsyncId } from 'async_hooks';
 import { log } from './helpers.js';
 
 function canConstruct(word, dict, memo = {}) {
