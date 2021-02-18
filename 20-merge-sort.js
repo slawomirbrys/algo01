@@ -1,5 +1,4 @@
 
-import { resourceLimits } from 'worker_threads';
 import { log } from './helpers.js';
 
 function merge_sort(array) {
