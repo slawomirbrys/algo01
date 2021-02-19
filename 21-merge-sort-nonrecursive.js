@@ -7,14 +7,20 @@ function merge_sort(array) {
 
   let j = 2;
   let len = array.length;
+  let result = array;
   while (true) {
-
+    
+    for (let i = 0; i < len / j; i++) {
+      l = i * j;
+      r = i * j + 1;
+      
+    }
 
     j = j * 2;
     if (j > len) break;
   }
 
-  return array;
+  return result;
 }
 
 log(merge_sort(null));

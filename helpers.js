@@ -13,8 +13,8 @@ function log(object) {
     let start = new Date();
     let result = object();
     let end = new Date();
-    console.log(`[${end-start}ms] `, util.inspect(result, true, 100, true));
-    return;
+    console.log(`[${end-start}ms] `, result !== undefined ? util.inspect(result, true, 100, true) : 'empty');
+    return result;
   }
 
   //console.log(JSON.stringify(object, null, 2));
