@@ -25,7 +25,9 @@ class App extends React.Component {
       mouseDown: false,
       change: false,
       selectedDraw: 'none',
-      selectedAlgo: 'dfs'
+      selectedAlgo: 'dfs',
+      astarDistance: 'euclidian',
+      astarHeuristic: 'total'
     }
 
     this.onMouseDown = this.onMouseDown.bind(this);
@@ -36,6 +38,8 @@ class App extends React.Component {
     this.onAlgoChange = this.onAlgoChange.bind(this);
     this.onStart = this.onStart.bind(this);
     this.onClear = this.onClear.bind(this);
+    this.onAlgoAStarDistanceChange = this.onAlgoAStarDistanceChange.bind(this);
+    this.onAlgoAStarHeuristicChange = this.onAlgoAStarHeuristicChange.bind(this);
 
     let array = new Array(this.state.height);
     for (let i = 0; i < this.state.height; i++) {
@@ -184,6 +188,18 @@ class App extends React.Component {
     });
   }
 
+  onAlgoAStarDistanceChange(event) {
+    this.setState({
+      astarDistance: event.target.value
+    });
+  }
+
+  onAlgoAStarHeuristicChange(event) {
+    this.setState({
+      astarHeuristic: event.target.value
+    });
+  }
+
   onStart() {
     this.onClear();
     let algoName = this.state.selectedAlgo;
@@ -208,7 +224,7 @@ class App extends React.Component {
     else if (algoName === 'astar') {
       algo = new AStarAlgo(this.nodes, this.start, this.end, (node) => {
         this.drawNode(node);
-      });
+      }, this.state.astarDistance, this.state.astarHeuristic);
     }
 
     let startTime = new Date();
@@ -299,6 +315,38 @@ class App extends React.Component {
                 onChange={this.onAlgoChange} />
              A*
            </label>
+            {this.state.selectedAlgo === 'astar' && <span>
+              &nbsp;
+              &nbsp;
+              Distance:
+             <label>
+                <input type="radio" name="also-astar-distance" value="euclidian" checked={this.state.astarDistance === 'euclidian'}
+                  onChange={this.onAlgoAStarDistanceChange}
+                ></input>
+                Euclidian
+              </label>
+              <label>
+                <input type="radio" name="also-astar-distance" value="manhattan"
+                  onChange={this.onAlgoAStarDistanceChange}
+                ></input>
+                Manhattan
+              </label>
+              &nbsp;
+              &nbsp;
+              Heuristic:
+             <label>
+                <input type="radio" name="also-astar-heuristic" value="total" checked={this.state.astarHeuristic === 'total'}
+                  onChange={this.onAlgoAStarHeuristicChange}
+                ></input>
+                Total distance
+              </label>
+              <label>
+                <input type="radio" name="also-astar-heuristic" value="focused"
+                  onChange={this.onAlgoAStarHeuristicChange}
+                ></input>
+                Focus on target
+              </label>
+            </span>}
           </div>
           <div>
             <button onClick={this.onStart}>Start</button>
@@ -646,7 +694,7 @@ class DijkstraAlgo {
       return nodes;
     }
 
-    console.log(this.map);
+    //console.log(this.map);
     let currentNode = foundNode;
     while (currentNode !== null) {
       let visualNode = this.nodes[currentNode.y][currentNode.x];
@@ -763,12 +811,16 @@ class AStarAlgo {
   endNode = null;
   map = new Map();
   callback = null;
+  distanceMethod = null;
+  heuristicMethod = null;
 
-  constructor(nodes, startNode, endNode, callback) {
+  constructor(nodes, startNode, endNode, callback, distanceMethod, heuristicMethod) {
     this.nodes = nodes;
     this.startNode = startNode;
     this.endNode = endNode;
     this.callback = callback;
+    this.distanceMethod = distanceMethod;
+    this.heuristicMethod = heuristicMethod;
   }
 
   start() {
@@ -801,7 +853,7 @@ class AStarAlgo {
       return nodes;
     }
 
-    console.log(this.map);
+    //console.log(this.map);
     let currentNode = foundNode;
     while (currentNode !== null) {
       let visualNode = this.nodes[currentNode.y][currentNode.x];
@@ -820,8 +872,10 @@ class AStarAlgo {
     let distX = Math.abs(x1 - x2);
     let distY = Math.abs(y1 - y2);
 
-    return Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
-    //return distX + distY;
+    if (this.distanceMethod === 'euclidian')
+      return Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+    else
+      return distX + distY;
   }
 
   mapSet(x, y, distance, heuristicDistance, previous, visited) {
@@ -867,16 +921,17 @@ class AStarAlgo {
     let min = Number.MAX_VALUE;
     let minKey = null;
     this.map.forEach((v, k) => {
-      // variance 1
-      // if (v.visited === false && v.totalDistance < min) {
-      //   min = v.totalDistance;
-      //   minKey = k;
-      // }
-
-      // variance 2
-      if (v.visited === false && v.heuristicDistance < min) {
-        min = v.heuristicDistance;
-        minKey = k;
+      if (this.heuristicMethod === 'total') {
+        if (v.visited === false && v.totalDistance < min) {
+          min = v.totalDistance;
+          minKey = k;
+        }
+      }
+      else {
+        if (v.visited === false && v.heuristicDistance < min) {
+          min = v.heuristicDistance;
+          minKey = k;
+        }
       }
     });
     return this.map.get(minKey);
