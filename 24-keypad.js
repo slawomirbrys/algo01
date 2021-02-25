@@ -35,6 +35,10 @@ charMap.set('8', ['t', 'u', 'v']);
 charMap.set('9', ['w', 'x', 'y', 'z']);
 
 let dictionary = ['hello', 'hi', 'world', 'worm', 'work'];
+/**
+ * Build trie based on dictionary
+ * @returns {TrieNode} Root of trie
+ */
 function buildTrie() {
   let root = new TrieNode(false);
   
@@ -59,35 +63,75 @@ let trie = buildTrie();
 log(trie);
 
 
+
+/**
+ * Function that returns possible array of words
+ * that starts from index for particular node from trie.
+ * 
+ * First recursive execution starts from unchanged word,
+ * index = 0, and node that is a root of trie.
+ * 
+ * @param {string} word Word to be analyzed 
+ * @param {*} index Index from which analysis should start
+ * @param {*} node Current node from trie 
+ */
 function returnWords(word, index, node) {
   let words = [];
 
+  // If we got a word in a trie, add it to the return array,
+  // but keep trying to find other words, that's why current
+  // node is reseted to the root.
   if(node.endOfWord === true) {
     words.push(word);
     node = trie;
   }
 
-  if(index > word.length) 
-    return words;
-
+  // Let's get possible chars that we can get from the digit
+  // from the current index of the possible phone-word.
+  // If that char is different than 1-9 then we just return
+  // what we have and start over.
   let possibleChars = charMap.get(word[index]);
   if(possibleChars === null || possibleChars === undefined) {
     return words;
   }
 
-  // For current letter based on index, check possible words in trie nodes
+  // Let's replace char from designated index on the 
+  // given phone-word, and check if any words could be
+  // constructed.
+  // From first recurence the phone-word will have all digits,
+  // but next executions will replace following digits with
+  // possible chars, i.e.:
+  //   1st execution -> 43556
+  //   2nd execution -> h3556
+  //   3rd execution -> he556
+  //   4th execution -> hel56
+  //   5th execution -> hell6
+  //   6th execution -> hello (word returned)
   for(let i=0; i<possibleChars.length; i++) {
+
+    // Replace char based on index with the possible one, and
+    // construct word char by char as described above.
     let tmp = word.split('');
     tmp[index] = possibleChars[i];
     let newWord = tmp.join('');
+
+    // For given node from trie check children nodes if
+    // contain given char, if yes, then child node is 
+    // returned and recursively try to find words with
+    // next char. All results add to array and return.
     let childNode = node.children.get(possibleChars[i]);
     if (childNode !== undefined) {
       newWord = returnWords(newWord, index + 1, childNode);
       newWord.forEach(w => words.push(w));
     }
   }
+
+  // Return all words that has been found, if not, then
+  // empty array is returned.
   return words;
 }
+
+
 
 /**
  * Function takes phone number and returns possible phone-words numbers
@@ -108,13 +152,12 @@ function main(phoneNumber) {
 }
 
 
-
-
 log(() => main(null));
 log(() => main(''));
 log(() => main('abc'));
 log(() => main('0000'));
 log(() => main('13566'));
+log(() => main('4355'));
 log(() => main('43556')); // hello
 log(() => main('443556')); // hi, hello
 log(() => main('96753')); // work, world
